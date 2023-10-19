@@ -1,11 +1,26 @@
 "use client";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronRight, LucideIcon, Plus } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
 import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import {
+  ChevronDown,
+  ChevronRight,
+  LucideIcon,
+  MoreHorizontal,
+  Plus,
+  Trash,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -18,7 +33,7 @@ interface ItemProps {
   level?: number;
   onExpand?: () => void;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   icon: LucideIcon;
 }
 
@@ -34,8 +49,22 @@ const Item = ({
   level = 0,
   onExpand,
 }: ItemProps) => {
+  const { user } = useUser();
   const router = useRouter();
   const create = useMutation(api.documents.create);
+  const archive = useMutation(api.documents.archive);
+
+  const onArchive = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    event.stopPropagation();
+    if (!id) return;
+    const promise = archive({ id });
+
+    toast.promise(promise, {
+      loading: "Moving to trash...",
+      success: "Note moved to trash!",
+      error: "Failed to archive note.",
+    });
+  };
 
   const expandHandler = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -45,21 +74,22 @@ const Item = ({
   };
 
   const onCreate = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    event.stopPropagation()
+    event.stopPropagation();
     if (!id) return;
-    const promise = create({ title: "Untitled", parentDocument: id })
-    .then((documentId) => {
-      if (!expanded) {
-        onExpand?.();
+    const promise = create({ title: "Untitled", parentDocument: id }).then(
+      (documentId) => {
+        if (!expanded) {
+          onExpand?.();
 
-        // router.push(`/documents/${documentId}`)
+          // router.push(`/documents/${documentId}`)
+        }
       }
-    });
-    toast.promise(promise,{
+    );
+    toast.promise(promise, {
       loading: "Creatin a new note...",
       success: "New note created!",
-      error: "Failed to create a new note"
-    })
+      error: "Failed to create a new note",
+    });
   };
 
   const ChevronIcon = expanded ? ChevronDown : ChevronRight;
@@ -95,7 +125,36 @@ const Item = ({
         </kbd>
       )}
       {!!id && (
-        <div role="button" onClick={onCreate} className="ml-auto flex items-center gap-x-2">
+        <div
+          role="button"
+          onClick={onCreate}
+          className="ml-auto flex items-center gap-x-2"
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger onClick={(e) => e.stopPropagation()} asChild>
+              <div
+                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                role="button"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-60"
+              align="start"
+              side="right"
+              forceMount
+            >
+              <DropdownMenuItem className="cursor-pointer" onClick={onArchive}>
+                <Trash className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <div className="text-xs text-muted-foreground p-2">
+                Last edited by: {user?.fullName}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600">
             <Plus className="h-4 w-4 text-muted-foreground" />
           </div>

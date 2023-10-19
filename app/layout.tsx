@@ -11,20 +11,18 @@ export const metadata: Metadata = {
   title: "Minipad",
   description:
     "Discover Minipad, your go-to platform for crafting and sharing notes with the world. Create, organize, and share your ideas and insights effortlessly. Join a global community of note-takers today!",
-  icons: {
-    icon: [
-      {
-        media: "(prefers-color-scheme: light)",
-        url: "/logo.svg",
-        href: "/logo.svg",
-      },
-      {
-        media: "(prefers-color-scheme: dark)",
-        url: "/logo-dark.svg",
-        href: "/logo-dark.svg",
-      },
-    ],
-  },
+  icons: [
+    {
+      media: "(prefers-color-scheme: light)",
+      url: "/logo.svg",
+      href: "/logo.svg",
+    },
+    {
+      media: "(prefers-color-scheme: dark)",
+      url: "/logo-dark.svg",
+      href: "/logo-dark.svg",
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -43,7 +41,7 @@ export default function RootLayout({
             disableTransitionOnChange
             storageKey="minipad-theme-2"
           >
-            <Toaster position="bottom-center"/>
+            <Toaster position="bottom-center" />
             {children}
           </ThemeProvider>
         </ConvexClientProvider>
